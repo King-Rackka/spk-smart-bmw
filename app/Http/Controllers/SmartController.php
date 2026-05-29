@@ -13,10 +13,32 @@ class SmartController extends Controller
     // ── TAHAP 1 ─────────────────────────────────────────────────
 
     public function tahap1()
-    {
-        $kriteria = DB::table('kriteria_tahap1')->orderBy('urutan')->get();
-        return view('smart.tahap1', compact('kriteria'));
-    }
+{
+    $kriteria = DB::table('kriteria_tahap1')->orderBy('urutan')->get();
+ 
+    // Ambil semua seri + nilai untuk preview client-side
+    $serisRaw = DB::table('seris')->get();
+    $seris = $serisRaw->map(function ($seri) use ($kriteria) {
+        $nilaiRows = DB::table('nilai_seri')
+            ->where('seri_id', $seri->id)
+            ->get()
+            ->keyBy('kriteria_id');
+ 
+        $nilai = [];
+        foreach ($kriteria as $k) {
+            $nilai[$k->kode] = (float) ($nilaiRows[$k->id]->nilai ?? 0);
+        }
+ 
+        return [
+            'id'    => $seri->id,
+            'nama'  => $seri->nama,
+            'slug'  => $seri->slug,
+            'nilai' => $nilai,
+        ];
+    })->values();
+ 
+    return view('smart.tahap1', compact('kriteria', 'seris'));
+}
 
     public function hitungTahap1(Request $request)
     {
