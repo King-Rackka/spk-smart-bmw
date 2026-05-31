@@ -3,7 +3,9 @@
 
 @section('content')
 
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{{-- ═══════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════ --}}
 <section class="relative overflow-hidden bg-white">
     {{-- subtle grid bg --}}
     <div class="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:40px_40px] opacity-60 pointer-events-none"></div>
@@ -11,6 +13,15 @@
     <div class="relative max-w-6xl mx-auto px-8 pt-20 pb-16 grid grid-cols-2 gap-12 items-center">
         {{-- LEFT --}}
         <div>
+            @auth
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+                <span class="text-sm text-gray-500">Selamat datang kembali, <span class="font-semibold text-indigo-600">{{ auth()->user()->name }}</span></span>
+            </div>
+            @endauth
+
             <span class="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full mb-6 uppercase">
                 ◇ Metode SMART — Simple Multi-Attribute Rating Technique
             </span>
@@ -38,16 +49,16 @@
             </div>
         </div>
 
-        
+        {{-- RIGHT — BMW image placeholder + accent --}}
         <div class="relative flex items-center justify-center">
             <div class="absolute -inset-4 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-3xl"></div>
             <img src="{{ asset('images/ilusi_bmw.png') }}"
                  alt="Ilustrasi BMW"
                     class="relative w-full h-auto rounded-2xl shadow-lg object-cover">
             </div>
+        </div>
     </div>
 </section>
-
 
 <div class="border-y border-gray-100 bg-white">
     <div class="max-w-6xl mx-auto px-8 py-5 grid grid-cols-4 divide-x divide-gray-100">
@@ -71,7 +82,6 @@
 </div>
 
 
-<section class="bg-white">
     <div class="max-w-6xl mx-auto px-8 py-20 grid grid-cols-2 gap-16 items-center">
         {{-- LEFT --}}
         <div>
@@ -115,7 +125,6 @@
 
 <div class="border-t border-gray-100 mx-8"></div>
 
-
 <section class="bg-white" id="metode">
     <div class="max-w-6xl mx-auto px-8 py-20">
         <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Keunggulan</p>
@@ -142,7 +151,6 @@
 </section>
 
 <div class="border-t border-gray-100 mx-8"></div>
-
 
 <section class="bg-white">
     <div class="max-w-6xl mx-auto px-8 py-20">
@@ -175,7 +183,9 @@
     </div>
 </section>
 
-
+{{-- ═══════════════════════════════════════════════
+     CTA
+════════════════════════════════════════════════ --}}
 <section class="max-w-6xl mx-auto px-8 pb-20">
     <div class="bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl px-12 py-12 flex items-center justify-between gap-8">
         <div>

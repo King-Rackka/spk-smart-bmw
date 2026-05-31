@@ -12,22 +12,23 @@
     </nav>
 
     <h1 class="text-3xl font-black text-gray-900 mb-1">
-        Tahap 1 — <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">Pemilihan Mobil BMW</span>
+        Tahap 1 — <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">Pemilihan Seri BMW</span>
     </h1>
     <p class="text-sm text-gray-500 mb-8 max-w-xl">
-        Pilih model BMW yang ingin dianalisis, kemudian tentukan bobot untuk setiap kriteria penilaian sesuai prioritas Anda.
+        Pilih seri BMW yang ingin dianalisis, kemudian tentukan bobot untuk setiap kriteria penilaian sesuai prioritas Anda.
     </p>
+    
 
     {{-- Step Indicator --}}
     <div class="flex items-center gap-3 mb-8">
         <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</div>
-            <span class="text-sm font-semibold text-gray-900">Pilih Model & Bobot</span>
+            <span class="text-sm font-semibold text-gray-900">Pilih Seri & Bobot</span>
         </div>
         <div class="flex-1 max-w-[120px] h-px bg-gray-200"></div>
         <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-full border-2 border-gray-200 text-gray-400 text-xs font-bold flex items-center justify-center">2</div>
-            <span class="text-sm text-gray-400">Analisis SMART</span>
+            <span class="text-sm text-gray-400">Pilih Mobil & Bobot</span>
         </div>
     </div>
 
@@ -65,7 +66,7 @@
                             </div>
 
                             {{-- Pertanyaan --}}
-                            <p class="text-xs text-gray-1000 mb-3 leading-relaxed">{{ $k->pertanyaan }}</p>
+                            <p class="text-xs text-gray-400 mb-3 leading-relaxed">{{ $k->pertanyaan }}</p>
 
                             <input
                                 type="range" min="0" max="100" value="40" step="1"
@@ -104,6 +105,12 @@
 
                         {{-- Buttons --}}
                         <div class="flex items-center gap-3">
+                            {{-- Skip ke Tahap 2 --}}
+                            <button type="button" onclick="bukaModalSkip()"
+                                    class="flex items-center gap-1.5 border border-gray-200 text-gray-500 text-sm font-medium px-4 py-2.5 rounded-xl hover:border-indigo-200 hover:text-indigo-600 transition">
+                                Lewati ↷
+                            </button>
+
                             {{-- Tombol Hitung Seri (tampil duluan) --}}
                             <button type="button" id="btn-hitung"
                                     onclick="hitungPreview()"
@@ -133,6 +140,7 @@
 
                 {{-- State: belum hitung --}}
                 <div id="preview-empty" class="px-5 py-8 text-center">
+                    <div class="text-3xl mb-2">🚗</div>
                     <div class="text-xs text-gray-400">Klik <strong>Hitung Seri</strong> untuk melihat<br>rekomendasi seri BMW</div>
                 </div>
 
@@ -170,9 +178,10 @@
             </div>
 
             {{-- Info --}}
-            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4">
-                <div class="text-xs font-bold text-indigo-700 mb-1">Tentang Tahap 1</div>
-                <div class="text-xs text-indigo-500 leading-relaxed">
+
+            <div class="rounded-2xl px-5 py-5" style="background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 60%, #3b82f6 100%)">
+                <div class="text-xs font-bold text-white mb-2">Tentang Tahap 1</div>
+                <div class="text-xs text-blue-200 leading-relaxed">
                     Sistem SMART menghitung utility setiap seri BMW lalu memilih seri terbaik untuk dilanjutkan ke Tahap 2.
                 </div>
             </div>
@@ -182,6 +191,62 @@
 </div>
 
 {{-- Data seri untuk kalkulasi client-side --}}
+{{-- ═══ MODAL SKIP ═══ --}}
+<div id="modal-skip"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden"
+     onclick="if(event.target===this) tutupModalSkip()">
+
+    {{-- Backdrop --}}
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+
+    {{-- Panel --}}
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 z-10">
+        <div class="mb-5">
+            <h3 class="text-base font-black text-gray-900 mb-1">Lewati Tahap 1</h3>
+            <p class="text-xs text-gray-400 leading-relaxed">
+                Pilih seri BMW yang ingin langsung dianalisis di Tahap 2. Skor seri tidak dihitung.
+            </p>
+        </div>
+
+        {{-- Seri options --}}
+        <div class="flex flex-col gap-2 mb-5" id="seri-options">
+            @foreach($seris as $s)
+            <button type="button"
+                    onclick="pilihSeriSkip(this.dataset.id)"
+                    class="seri-option flex items-center justify-between px-4 py-3 border border-gray-100 rounded-xl text-left hover:border-indigo-200 hover:bg-indigo-50 transition group"
+                    data-id="{{ $s['id'] }}">
+                <span class="text-sm font-semibold text-gray-900 group-hover:text-indigo-700">{{ $s['nama'] }}</span>
+                <span class="text-gray-300 group-hover:text-indigo-400">→</span>
+            </button>
+            @endforeach
+        </div>
+
+        <button onclick="tutupModalSkip()"
+                class="w-full text-sm text-gray-400 hover:text-gray-600 py-2 transition">
+            Batal
+        </button>
+    </div>
+</div>
+
+{{-- Form hidden untuk skip (POST ke hitungTahap1 dengan seri terpilih) --}}
+<form id="form-skip" action="{{ route('spk.tahap1.skip') }}" method="POST" class="hidden">
+    @csrf
+    <input type="hidden" name="seri_id" id="skip-seri-id">
+</form>
+
+<script>
+function bukaModalSkip() {
+    document.getElementById('modal-skip').classList.remove('hidden');
+}
+function tutupModalSkip() {
+    document.getElementById('modal-skip').classList.add('hidden');
+}
+function pilihSeriSkip(id) {
+    document.getElementById('skip-seri-id').value = id;
+    document.getElementById('form-skip').submit();
+}
+</script>
+
 <script>
 const SERIS_DATA = JSON.parse('{!! json_encode($seris) !!}');
 const KRITERIA_DATA = JSON.parse('{!! json_encode($kriteria) !!}');
@@ -237,6 +302,7 @@ function updateNormalized() {
     });
 }
 
+// ── SMART preview (client-side) ─────────────────────────────────
 function hitungPreview() {
     const sliders = document.querySelectorAll('.slider-input');
     let total = 0;
