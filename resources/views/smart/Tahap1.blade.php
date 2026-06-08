@@ -61,14 +61,14 @@
                                         <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Benefit</span>
                                     @endif
                                 </div>
-                                <span id="val-{{ $k->kode }}" class="text-lg font-black text-indigo-600 min-w-[2.5rem] text-right">40</span>
+                                <span id="val-{{ $k->kode }}" class="text-lg font-black text-indigo-600 min-w-[2.5rem] text-right">20</span>
                             </div>
 
                             {{-- Pertanyaan --}}
                             <p class="text-xs text-gray-400 mb-3 leading-relaxed">{{ $k->pertanyaan }}</p>
 
                             <input
-                                type="range" min="0" max="100" value="40" step="1"
+                                type="range" min="0" max="100" value="20" step="1"
                                 name="bobot[{{ $k->kode }}]"
                                 id="slider-{{ $k->kode }}"
                                 data-kode="{{ $k->kode }}"
@@ -288,11 +288,9 @@
         <div class="flex flex-col gap-2 mb-5" id="seri-options">
             @foreach($seris as $s)
             <button type="button"
-        onclick="pilihSeriSkip(this)"
-        class="seri-option flex items-center justify-between px-4 py-3 border border-gray-100 rounded-xl"
-        data-id="{{ $s['id'] }}"
-        data-nama="{{ $s['nama'] }}"
-        data-slug="{{ $s['slug'] }}">
+                    onclick="pilihSeriSkip({{ $s['id'] }}, '{{ $s['nama'] }}', '{{ $s['slug'] }}')"
+                    class="seri-option flex items-center justify-between px-4 py-3 border border-gray-100 rounded-xl text-left hover:border-indigo-200 hover:bg-indigo-50 transition group"
+                    data-id="{{ $s['id'] }}">
                 <span class="text-sm font-semibold text-gray-900 group-hover:text-indigo-700">{{ $s['nama'] }}</span>
                 <span class="text-gray-300 group-hover:text-indigo-400">→</span>
             </button>

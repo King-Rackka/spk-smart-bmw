@@ -127,10 +127,10 @@
                                         <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Benefit</span>
                                     @endif
                                 </div>
-                                <span id="val-{{ $k->kode }}" class="text-lg font-black text-indigo-600 min-w-[2.5rem] text-right">40</span>
+                                <span id="val-{{ $k->kode }}" class="text-lg font-black text-indigo-600 min-w-[2.5rem] text-right">20</span>
                             </div>
                             <p class="text-xs text-gray-400 mb-3 leading-relaxed">{{ $k->pertanyaan }}</p>
-                            <input type="range" min="0" max="100" value="40" step="1"
+                            <input type="range" min="0" max="100" value="20" step="1"
                                    name="bobot[{{ $k->kode }}]" id="slider-{{ $k->kode }}" data-kode="{{ $k->kode }}"
                                    class="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer slider-input
                                           [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
