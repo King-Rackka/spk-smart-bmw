@@ -12,23 +12,22 @@
     </nav>
 
     <h1 class="text-3xl font-black text-gray-900 mb-1">
-        Tahap 1 — <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">Pemilihan Seri BMW</span>
+        Tahap 1 — <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">Pemilihan Mobil BMW</span>
     </h1>
     <p class="text-sm text-gray-500 mb-8 max-w-xl">
-        Pilih seri BMW yang ingin dianalisis, kemudian tentukan bobot untuk setiap kriteria penilaian sesuai prioritas Anda.
+        Pilih model BMW yang ingin dianalisis, kemudian tentukan bobot untuk setiap kriteria penilaian sesuai prioritas Anda.
     </p>
-    
 
     {{-- Step Indicator --}}
     <div class="flex items-center gap-3 mb-8">
         <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</div>
-            <span class="text-sm font-semibold text-gray-900">Pilih Seri & Bobot</span>
+            <span class="text-sm font-semibold text-gray-900">Pilih Model & Bobot</span>
         </div>
         <div class="flex-1 max-w-[120px] h-px bg-gray-200"></div>
         <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-full border-2 border-gray-200 text-gray-400 text-xs font-bold flex items-center justify-center">2</div>
-            <span class="text-sm text-gray-400">Pilih Mobil & Bobot</span>
+            <span class="text-sm text-gray-400">Analisis SMART</span>
         </div>
     </div>
 
@@ -178,15 +177,92 @@
             </div>
 
             {{-- Info --}}
-
-            <div class="rounded-2xl px-5 py-5" style="background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 60%, #3b82f6 100%)">
-                <div class="text-xs font-bold text-white mb-2">Tentang Tahap 1</div>
-                <div class="text-xs text-blue-200 leading-relaxed">
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4">
+                <div class="text-xs font-bold text-indigo-700 mb-1">Tentang Tahap 1</div>
+                <div class="text-xs text-indigo-500 leading-relaxed">
                     Sistem SMART menghitung utility setiap seri BMW lalu memilih seri terbaik untuk dilanjutkan ke Tahap 2.
                 </div>
             </div>
 
         </div>
+    </div>
+
+    {{-- ═══ BREAKDOWN PERHITUNGAN (muncul setelah hitung) ═══ --}}
+    <div id="section-breakdown" class="hidden mt-6 flex flex-col gap-4">
+
+        {{-- Tabel Bobot Ternormalisasi --}}
+        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-50">
+                <div class="text-sm font-bold text-gray-900">📐 Langkah 1 — Normalisasi Bobot</div>
+                <div class="text-xs text-gray-400 mt-0.5">Wi = wi / Σwi &nbsp;→&nbsp; Total normalisasi selalu = 1.0000</div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs" id="tbl-bobot-normal">
+                    <thead>
+                        <tr class="bg-gray-50/50 border-b border-gray-100">
+                            <th class="px-5 py-3 text-left font-semibold text-gray-500">Kriteria</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-500">Tipe</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-500">Bobot Input (wi)</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-500">Σwi</th>
+                            <th class="px-4 py-3 text-center font-semibold text-indigo-500">Bobot Normal (Wi)</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-400">Formula</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-bobot-normal" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Tabel Nilai & Xmin Xmax --}}
+        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-50">
+                <div class="text-sm font-bold text-gray-900">📊 Langkah 2 — Matriks Nilai & Xmin/Xmax</div>
+                <div class="text-xs text-gray-400 mt-0.5">Nilai tiap seri per kriteria, beserta nilai minimum dan maksimum</div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs" id="tbl-nilai">
+                    <thead id="thead-nilai">
+                        <tr class="bg-gray-50/50 border-b border-gray-100"></tr>
+                    </thead>
+                    <tbody id="tbody-nilai" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Tabel Utility --}}
+        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-50">
+                <div class="text-sm font-bold text-gray-900">⚡ Langkah 3 — Perhitungan Utility</div>
+                <div class="text-xs text-gray-400 mt-0.5">
+                    Benefit: U = (X − Xmin) / (Xmax − Xmin) &nbsp;|&nbsp; Cost: U = (Xmax − X) / (Xmax − Xmin)
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead id="thead-utility">
+                        <tr class="bg-gray-50/50 border-b border-gray-100"></tr>
+                    </thead>
+                    <tbody id="tbody-utility" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Tabel Skor SMART --}}
+        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-50">
+                <div class="text-sm font-bold text-gray-900">🏆 Langkah 4 — Skor SMART & Ranking</div>
+                <div class="text-xs text-gray-400 mt-0.5">S(Ai) = Σ [Wi × U(xij)] &nbsp;→&nbsp; diurutkan dari skor tertinggi</div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs">
+                    <thead id="thead-skor">
+                        <tr class="bg-gray-50/50 border-b border-gray-100"></tr>
+                    </thead>
+                    <tbody id="tbody-skor" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -212,9 +288,11 @@
         <div class="flex flex-col gap-2 mb-5" id="seri-options">
             @foreach($seris as $s)
             <button type="button"
-                    onclick="pilihSeriSkip(this.dataset.id)"
-                    class="seri-option flex items-center justify-between px-4 py-3 border border-gray-100 rounded-xl text-left hover:border-indigo-200 hover:bg-indigo-50 transition group"
-                    data-id="{{ $s['id'] }}">
+        onclick="pilihSeriSkip(this)"
+        class="seri-option flex items-center justify-between px-4 py-3 border border-gray-100 rounded-xl"
+        data-id="{{ $s['id'] }}"
+        data-nama="{{ $s['nama'] }}"
+        data-slug="{{ $s['slug'] }}">
                 <span class="text-sm font-semibold text-gray-900 group-hover:text-indigo-700">{{ $s['nama'] }}</span>
                 <span class="text-gray-300 group-hover:text-indigo-400">→</span>
             </button>
@@ -241,7 +319,7 @@ function bukaModalSkip() {
 function tutupModalSkip() {
     document.getElementById('modal-skip').classList.add('hidden');
 }
-function pilihSeriSkip(id) {
+function pilihSeriSkip(id, nama, slug) {
     document.getElementById('skip-seri-id').value = id;
     document.getElementById('form-skip').submit();
 }
@@ -313,7 +391,7 @@ function hitungPreview() {
         total += bobotRaw[s.dataset.kode];
     });
 
-    if (total !== 100) return; // guard
+    if (total !== 100) return;
 
     // Normalisasi bobot
     const bobot = {};
@@ -327,25 +405,30 @@ function hitungPreview() {
         maxVal[kr.kode] = Math.max(...vals);
     });
 
-    // Hitung utility & skor SMART
+    // Hitung utility & skor SMART (simpan utility per seri)
     const ranked = SERIS_DATA.map(seri => {
         let skor = 0;
+        const utility = {};
+        const skorPerK = {};
         KRITERIA_DATA.forEach(kr => {
             const v    = seri.nilai[kr.kode] ?? 0;
             const min  = minVal[kr.kode];
             const max  = maxVal[kr.kode];
-            let utility = (max === min) ? 1 : (v - min) / (max - min);
-            if (kr.tipe === 'cost') utility = 1 - utility;
-            skor += bobot[kr.kode] * utility;
+            let u = (max === min) ? 0 : (kr.tipe === 'cost')
+                ? (max - v) / (max - min)
+                : (v - min)  / (max - min);
+            u = parseFloat(u.toFixed(6));
+            utility[kr.kode]  = u;
+            skorPerK[kr.kode] = parseFloat((bobot[kr.kode] * u).toFixed(6));
+            skor += bobot[kr.kode] * u;
         });
-        return { ...seri, skor: parseFloat((skor * 100).toFixed(2)) };
+        return { ...seri, utility, skorPerK, skor: parseFloat((skor * 100).toFixed(4)) };
     }).sort((a, b) => b.skor - a.skor);
 
-    // Tampilkan hasil
-    showPreview(ranked);
+    showPreview(ranked, bobot, bobotRaw, total, minVal, maxVal);
 }
 
-function showPreview(ranked) {
+function showPreview(ranked, bobot, bobotRaw, total, minVal, maxVal) {
     document.getElementById('preview-empty').classList.add('hidden');
     document.getElementById('preview-result').classList.remove('hidden');
 
@@ -353,13 +436,13 @@ function showPreview(ranked) {
     document.getElementById('preview-seri-nama').textContent = winner.nama;
     document.getElementById('preview-seri-skor').textContent = 'Skor SMART: ' + winner.skor + '%';
 
-    // Ranking list
+    const medals = ['🥇','🥈','🥉'];
     const rankEl = document.getElementById('preview-ranking');
     rankEl.innerHTML = ranked.map((s, i) => `
         <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold w-4 ${i===0?'text-indigo-600':'text-gray-400'}">#${i+1}</span>
-                <span class="text-xs ${i===0?'font-semibold text-gray-900':'text-gray-500'}">${s.nama}</span>
+            <div class="flex items-center gap-1.5">
+                <span class="text-sm">${medals[i] ?? '#'+(i+1)}</span>
+                <span class="text-xs ${i===0?'font-bold text-gray-900':'text-gray-500'}">${s.nama}</span>
             </div>
             <span class="text-[10px] font-bold ${i===0?'text-indigo-600':'text-gray-400'}">${s.skor}%</span>
         </div>
@@ -368,6 +451,72 @@ function showPreview(ranked) {
     // Ganti tombol
     document.getElementById('btn-hitung').classList.add('hidden');
     document.getElementById('btn-lanjut').classList.remove('hidden');
+
+    // ── Tampilkan breakdown perhitungan ──────────────────────────
+    document.getElementById('section-breakdown').classList.remove('hidden');
+
+    // 1. Tabel Bobot Normal
+    const tbodyBobot = document.getElementById('tbody-bobot-normal');
+    tbodyBobot.innerHTML = KRITERIA_DATA.map(kr => {
+        const wi = bobotRaw[kr.kode];
+        const Wi = bobot[kr.kode];
+        return `<tr class="hover:bg-gray-50/50">
+            <td class="px-5 py-2.5 font-semibold text-gray-900">${kr.nama}</td>
+            <td class="px-4 py-2.5 text-center">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${kr.tipe==='benefit'?'text-emerald-600 bg-emerald-50':'text-blue-600 bg-blue-50'}">${kr.tipe}</span>
+            </td>
+            <td class="px-4 py-2.5 text-center font-bold text-gray-700">${wi}</td>
+            <td class="px-4 py-2.5 text-center text-gray-400">${total}</td>
+            <td class="px-4 py-2.5 text-center font-bold text-indigo-600">${Wi.toFixed(4)}</td>
+            <td class="px-4 py-2.5 text-center text-gray-300 font-mono text-[10px]">${wi}/${total} = ${Wi.toFixed(4)}</td>
+        </tr>`;
+    }).join('');
+
+    // 2. Tabel Nilai + Xmin/Xmax
+    const theadNilai = document.getElementById('thead-nilai').querySelector('tr') || document.getElementById('thead-nilai').insertRow();
+    theadNilai.innerHTML = `<th class="px-5 py-3 text-left font-semibold text-gray-500">Seri BMW</th>`
+        + KRITERIA_DATA.map(kr => `<th class="px-4 py-3 text-center font-semibold ${kr.tipe==='benefit'?'text-emerald-500':'text-blue-500'}">${kr.nama}<div class="text-[9px] font-normal opacity-60">${kr.tipe}</div></th>`).join('');
+    document.getElementById('tbody-nilai').innerHTML =
+        ranked.map(s => `<tr class="hover:bg-gray-50/50">
+            <td class="px-5 py-2.5 font-semibold text-gray-900">${s.nama}</td>
+            ${KRITERIA_DATA.map(kr => `<td class="px-4 py-2.5 text-center text-gray-600">${s.nilai[kr.kode]}</td>`).join('')}
+        </tr>`).join('')
+        + `<tr class="bg-red-50/50"><td class="px-5 py-2 font-bold text-red-600 text-[10px]">Xmin</td>${KRITERIA_DATA.map(kr=>`<td class="px-4 py-2 text-center font-bold text-red-500 text-[10px]">${minVal[kr.kode]}</td>`).join('')}</tr>`
+        + `<tr class="bg-emerald-50/50"><td class="px-5 py-2 font-bold text-emerald-600 text-[10px]">Xmax</td>${KRITERIA_DATA.map(kr=>`<td class="px-4 py-2 text-center font-bold text-emerald-500 text-[10px]">${maxVal[kr.kode]}</td>`).join('')}</tr>`;
+
+    // 3. Tabel Utility
+    document.getElementById('thead-utility').querySelector('tr').innerHTML =
+        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Seri BMW</th>`
+        + KRITERIA_DATA.map(kr => `<th class="px-4 py-3 text-center font-semibold ${kr.tipe==='benefit'?'text-emerald-500':'text-blue-500'}">${kr.nama}</th>`).join('')
+        + `<th class="px-4 py-3 text-center font-semibold text-indigo-500">Skor (S)</th>`;
+    document.getElementById('tbody-utility').innerHTML = ranked.map((s,i) => `
+        <tr class="${i===0?'bg-indigo-50/30':''} hover:bg-gray-50/50">
+            <td class="px-5 py-2.5 font-semibold ${i===0?'text-indigo-700':'text-gray-900'}">${medals[i]??'#'+(i+1)} ${s.nama}</td>
+            ${KRITERIA_DATA.map(kr => {
+                const u = s.utility[kr.kode];
+                const cls = u>=0.75?'bg-emerald-50 text-emerald-600':u>=0.5?'bg-blue-50 text-blue-600':u>=0.25?'bg-amber-50 text-amber-600':'bg-red-50 text-red-500';
+                return `<td class="px-4 py-2.5 text-center"><span class="inline-flex items-center justify-center w-14 h-6 rounded text-[10px] font-bold ${cls}">${u.toFixed(4)}</span></td>`;
+            }).join('')}
+            <td class="px-4 py-2.5 text-center font-black ${i===0?'text-indigo-600':'text-gray-400'}">${s.skor}%</td>
+        </tr>
+    `).join('');
+
+    // 4. Tabel Skor detail (Wi × Ui per kriteria)
+    document.getElementById('thead-skor').querySelector('tr').innerHTML =
+        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Seri BMW</th>`
+        + KRITERIA_DATA.map(kr => `<th class="px-4 py-3 text-center font-semibold text-gray-400 text-[10px]">Wi×Ui<br><span class="text-[9px]">${kr.nama.substring(0,12)}</span></th>`).join('')
+        + `<th class="px-4 py-3 text-center font-semibold text-indigo-500">Skor Total</th><th class="px-4 py-3 text-center font-semibold text-gray-400">Rank</th>`;
+    document.getElementById('tbody-skor').innerHTML = ranked.map((s,i) => `
+        <tr class="${i===0?'bg-indigo-50/30':''} hover:bg-gray-50/50">
+            <td class="px-5 py-2.5 font-semibold ${i===0?'text-indigo-700':'text-gray-900'}">${s.nama}</td>
+            ${KRITERIA_DATA.map(kr => `<td class="px-4 py-2.5 text-center text-[10px] text-gray-500">${s.skorPerK[kr.kode].toFixed(4)}</td>`).join('')}
+            <td class="px-4 py-2.5 text-center font-black text-lg ${i===0?'text-indigo-600':'text-gray-400'}">${s.skor}%</td>
+            <td class="px-4 py-2.5 text-center font-bold text-gray-500">${i+1}</td>
+        </tr>
+    `).join('');
+
+    // Scroll ke breakdown
+    document.getElementById('section-breakdown').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function resetPreview() {

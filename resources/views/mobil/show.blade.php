@@ -61,7 +61,7 @@
             </div>
 
             {{-- CTA --}}
-            <a href="{{ route('spk.tahap2', ['kode_bodi' => $mobil->id]) }}"
+            <a href="{{ auth()->check() ? route('spk.tahap2', ['kode_bodi' => $mobil->id]) : route('login') }}"
                class="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white text-sm font-bold py-3.5 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all">
                 Pilih Mobil Ini →
             </a>
@@ -103,7 +103,7 @@
 
             {{-- Nilai Kriteria Tahap 2 --}}
             @if($nilaiKriteria->count())
-            <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <!-- <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-50">
                     <div class="text-sm font-bold text-gray-900">Penilaian Kriteria SMART</div>
                     <div class="text-xs text-gray-400 mt-0.5">Nilai alternatif berdasarkan kriteria Tahap 2 (skala 1–5)</div>
@@ -129,7 +129,7 @@
                     </div>
                     @endforeach
                 </div>
-            </div>
+            </div> -->
             @endif
 
             {{-- Mobil lain di seri ini --}}

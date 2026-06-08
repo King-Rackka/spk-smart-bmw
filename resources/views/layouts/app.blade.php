@@ -48,6 +48,10 @@
                        class="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl transition active:scale-95">
                         Login
                     </a>
+                    <a href="{{ route('register') }}"
+                        class="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl transition active:scale-95">
+                        Daftar
+                    </a>
                 @else
                     {{-- Sudah login: Mulai Analisis + Avatar --}}
                     <a href="{{ route('spk.tahap1') }}"

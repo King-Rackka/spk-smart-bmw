@@ -90,7 +90,7 @@
                        class="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 text-xs font-semibold py-2 rounded-xl hover:border-indigo-200 hover:text-indigo-600 transition">
                         👁 Lihat detail
                     </a>
-                    <a href="{{ route('spk.tahap2', ['kode_bodi' => $mobil->id]) }}"
+                    <a href="{{ auth()->check() ? route('spk.tahap2', ['kode_bodi' => $mobil->id]) : route('login') }}"
                        class="flex-1 flex items-center justify-center gap-1.5 bg-indigo-600 text-white text-xs font-semibold py-2 rounded-xl hover:bg-indigo-700 transition">
                         ✓ Pilih Mobil
                     </a>

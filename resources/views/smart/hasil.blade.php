@@ -48,7 +48,7 @@
                 <div class="text-sm text-blue-200">{{ $seri->nama }} · {{ $ranked[0]['tahun'] ?? '' }}</div>
                 <div class="mt-3 flex items-center gap-3">
                     <div class="h-2 bg-white/20 rounded-full overflow-hidden flex-1 max-w-xs">
-                        <div class="h-full bg-white rounded-full" style="width: {{ number_format($ranked[0]['skor']*100,2) }}%"></div>
+                        <div class="h-full bg-white rounded-full" style="--progress: {{ number_format($ranked[0]['skor']*100, 2) }}%; width: var(--progress);"></div>
                     </div>
                     <span class="text-2xl font-black text-white">{{ number_format($ranked[0]['skor']*100,2) }}%</span>
                 </div>
@@ -79,8 +79,9 @@
                             <div class="text-sm font-bold {{ $i===0?'text-indigo-700':'text-gray-900' }}">{{ $item['nama'] }}</div>
                             <div class="text-xs text-gray-400">{{ $item['tahun'] ?? '' }}</div>
                             <div class="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-xs">
-                                <div class="h-full {{ $i===0?'bg-indigo-500':'bg-gray-300' }} rounded-full"
-                                     style="width: {{ number_format($item['skor']*100,2) }}%"></div>
+                                <div class="h-full {{ $i === 0 ? 'bg-indigo-500' : 'bg-gray-300' }} rounded-full"
+                                    style="--progress: {{ number_format($item['skor']*100, 2) }}%; width: var(--progress);">
+                                </div>
                             </div>
                         </div>
                         <div class="text-lg font-black {{ $i===0?'text-indigo-600':'text-gray-400' }}">
@@ -155,7 +156,7 @@
                             <span class="text-xs font-bold text-indigo-600">{{ number_format($w,1) }}%</span>
                         </div>
                         <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-indigo-400 rounded-full" style="width:{{ $w }}%"></div>
+                            <div class="h-full bg-indigo-400 rounded-full" style="--w: {{ $w }}%; width: var(--w);"></div>
                         </div>
                     </div>
                     @endforeach

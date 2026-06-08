@@ -38,7 +38,7 @@
             </p>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('spk.tahap1') }}"
+                <a href="{{ auth()->check() ? route('spk.tahap1') : route('login') }}"
                    class="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all">
                     → Cari sekarang
                 </a>
@@ -94,7 +94,7 @@
                 Memilih model BMW yang tepat bisa membingungkan. Setiap model punya keunggulan berbeda — dari performa, efisiensi, hingga gaya hidup.
                 Sistem kami membantu Anda membuat keputusan berdasarkan data, bukan tebakan.
             </p>
-            <a href="{{ route('spk.tahap1') }}"
+            <a href="{{ auth()->check() ? route('spk.tahap1') : route('login') }}"
                class="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition">
                 ✦ Mulai analisis
             </a>
@@ -183,16 +183,13 @@
     </div>
 </section>
 
-{{-- ═══════════════════════════════════════════════
-     CTA
-════════════════════════════════════════════════ --}}
 <section class="max-w-6xl mx-auto px-8 pb-20">
     <div class="bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl px-12 py-12 flex items-center justify-between gap-8">
         <div>
             <h2 class="text-2xl font-black text-white mb-2">Siap menemukan BMW pertama Anda?</h2>
             <p class="text-sm text-indigo-200 leading-relaxed">Mulai konsultasi sekarang dan dapatkan rekomendasi yang tepat berdasarkan kebutuhan Anda.</p>
         </div>
-        <a href="{{ route('spk.tahap1') }}"
+        <a href="{{ auth()->check() ? route('spk.tahap1') : route('login') }}"
            class="flex-shrink-0 bg-white text-indigo-700 text-sm font-bold px-8 py-3.5 rounded-xl hover:bg-indigo-50 active:scale-95 transition-all whitespace-nowrap">
             Mulai analisis sekarang →
         </a>

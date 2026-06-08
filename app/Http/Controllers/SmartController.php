@@ -90,6 +90,7 @@ class SmartController extends Controller
             'tahap1_hasil'    => $hasil['ranked'],
             'tahap1_bobot'    => $hasil['bobotNormal'],
             'tahap1_winner'   => $hasil['ranked'][0],
+            'tahap1_skipped'  => false,
         ]);
 
         return redirect()->route('spk.tahap2');
@@ -371,7 +372,9 @@ private function hitungUtilityBreakdown($ranked, $kriteria)
     {
         session()->forget([
             'tahap1_hasil', 'tahap1_bobot', 'tahap1_winner',
+            'tahap1_skipped',
             'tahap2_hasil', 'tahap2_bobot', 'tahap2_kriteria',
+            'tahap2_utility', 'hasil_id',
         ]);
         return redirect()->route('spk.tahap1');
     }
