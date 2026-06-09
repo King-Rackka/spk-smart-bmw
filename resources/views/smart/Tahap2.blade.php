@@ -70,7 +70,7 @@
                     @foreach($kodeBodis as $mobil)
                     <label class="relative cursor-pointer group select-none" data-id="{{ $mobil->id }}">
                         <input type="checkbox" name="selected_mobil[]" value="{{ $mobil->id }}"
-                               class="peer hidden mobil-checkbox" onchange="onMobilChange()">
+                               class="peer hidden mobil-checkbox">
                         <div class="border-2 border-gray-100 rounded-xl overflow-hidden transition-all duration-150
                                     peer-checked:border-indigo-500 peer-checked:shadow-md peer-checked:shadow-indigo-100
                                     group-hover:border-gray-300 group-hover:shadow-sm">
@@ -112,8 +112,10 @@
                 <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-50">
                         <div class="text-sm font-bold text-gray-900">Bobot Kriteria Penilaian</div>
-                        <div class="text-xs text-gray-400 mt-0.5">Tentukan tingkat kepentingan (0–100) setiap kriteria.
-                            <span class="text-amber-500 font-medium">Total bobot harus tepat 100.</span></div>
+                        <div class="text-xs text-gray-400 mt-0.5">
+                            Tentukan tingkat kepentingan (0–100) setiap kriteria.
+                            <span class="text-gray-400">Sistem akan otomatis menghitung proporsinya.</span>
+                        </div>
                     </div>
                     <div class="divide-y divide-gray-50">
                         @foreach ($kriteria as $k)
@@ -147,9 +149,7 @@
                     <div class="px-6 py-4 border-t border-gray-50 flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400">Total Bobot</span>
-                            <span id="total-bobot" class="text-sm font-black text-indigo-600">200</span>
-                            <span id="bobot-warning" class="hidden text-[11px] font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Harus 100!</span>
-                            <span id="bobot-ok" class="hidden text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">✓</span>
+                            <span id="total-bobot" class="text-sm font-black text-indigo-600">100</span>
                         </div>
                         <div class="flex gap-3">
                             <a href="{{ route('spk.tahap1') }}"
@@ -157,7 +157,7 @@
                                 ← Kembali
                             </a>
                             <div class="relative">
-                                <button type="submit" id="btn-hitung"
+                                <button type="submit" id="btn-hitung" disabled
                                         class="flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl
                                                hover:bg-indigo-700 active:scale-95 transition-all
                                                disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
@@ -349,40 +349,64 @@
     </form>
 </div>
 
+{{-- Data JSON aman: tidak di-inline ke string JS, tidak bisa crash karena karakter aneh --}}
+<script id="krit-data" type="application/json">{!! json_encode($kriteria, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+
 <script>
-const TOTAL_MOBIL = Number('{{ count($kodeBodis) }}');
-const KRIT = JSON.parse('{!! json_encode($kriteria) !!}');
-let semuaDipilih = false;
+const TOTAL_MOBIL = {{ (int) count($kodeBodis) }};
+
+{{-- Cara aman embed JSON ke JS — pakai tag <script type="application/json"> --}}
+const KRIT = JSON.parse(document.getElementById('krit-data').textContent);
+
 let hasilTerakhir = null;
 
+// ── Pilih Semua ──────────────────────────────────────────────────
+// FIX: cek state real checkbox, bukan toggle boolean buta
 function togglePilihSemua() {
-    semuaDipilih = !semuaDipilih;
-    document.querySelectorAll('.mobil-checkbox').forEach(cb => { cb.checked = semuaDipilih; });
-    document.getElementById('btn-semua').textContent = semuaDipilih ? '☐ Batal Semua' : '☑ Pilih Semua';
+    const checkboxes = document.querySelectorAll('.mobil-checkbox');
+    const allChecked = [...checkboxes].every(cb => cb.checked);
+    // Kalau semua sudah checked → uncheck semua. Kalau belum → check semua
+    const targetState = !allChecked;
+    checkboxes.forEach(cb => { cb.checked = targetState; });
+    document.getElementById('btn-semua').textContent = targetState ? '☐ Batal Semua' : '☑ Pilih Semua';
     onMobilChange();
 }
 
+// ── Checkbox mobil ───────────────────────────────────────────────
 function onMobilChange() {
     const checked = document.querySelectorAll('.mobil-checkbox:checked');
-    const count = checked.length;
+    const count   = checked.length;
+
     document.getElementById('counter-pilih').textContent = count;
     document.getElementById('bar-pilih').style.width = (count / TOTAL_MOBIL * 100) + '%';
 
+    // Update visual checkbox tiap kartu
     document.querySelectorAll('.mobil-checkbox').forEach(cb => {
         const box  = cb.closest('label').querySelector('.check-box-visual');
         const icon = cb.closest('label').querySelector('.check-icon');
         box.classList.toggle('border-indigo-500', cb.checked);
-        box.classList.toggle('bg-indigo-500', cb.checked);
-        box.classList.toggle('border-gray-200', !cb.checked);
-        icon.classList.toggle('hidden', !cb.checked);
+        box.classList.toggle('bg-indigo-500',     cb.checked);
+        box.classList.toggle('border-gray-200',  !cb.checked);
+        icon.classList.toggle('hidden',           !cb.checked);
     });
 
-    semuaDipilih = count === TOTAL_MOBIL;
-    document.getElementById('btn-semua').textContent = semuaDipilih ? '☐ Batal Semua' : '☑ Pilih Semua';
+    // Sync tombol pilih semua berdasarkan state real
+    const allChecked = count === TOTAL_MOBIL;
+    document.getElementById('btn-semua').textContent = allChecked ? '☐ Batal Semua' : '☑ Pilih Semua';
+
+    // Tampilkan warning kalau dipilih 1 saja (bukan 0)
     document.getElementById('pesan-pilih').classList.toggle('hidden', count >= 2 || count === 0);
+
+    // Tampilkan baris matriks sesuai yang dipilih
+    const selectedIds = [...checked].map(c => c.value);
+    document.querySelectorAll('.matriks-row').forEach(row => {
+        row.classList.toggle('hidden', !selectedIds.includes(row.dataset.id));
+    });
+
     validateForm();
 }
 
+// ── Slider ───────────────────────────────────────────────────────
 function syncSlider(input) {
     document.getElementById('val-' + input.dataset.kode).textContent = input.value;
     updateNormalized();
@@ -393,59 +417,90 @@ function updateNormalized() {
     const sliders = document.querySelectorAll('.slider-input');
     let total = 0;
     const vals = {};
-    sliders.forEach(s => { vals[s.dataset.kode] = parseFloat(s.value)||0; total += vals[s.dataset.kode]; });
+    sliders.forEach(s => {
+        vals[s.dataset.kode] = parseFloat(s.value) || 0;
+        total += vals[s.dataset.kode];
+    });
+
     document.getElementById('total-bobot').textContent = total;
-    const ok = total === 100;
-    document.getElementById('total-bobot').className = 'text-sm font-black ' + (ok ? 'text-emerald-600' : 'text-indigo-600');
-    document.getElementById('bobot-warning').classList.toggle('hidden', ok);
-    document.getElementById('bobot-ok').classList.toggle('hidden', !ok);
+
     Object.entries(vals).forEach(([kode, v]) => {
-        const pct = total > 0 ? ((v/total)*100).toFixed(1) : '0.0';
-        const el = document.getElementById('norm-'+kode);
-        const bar = document.getElementById('bar-'+kode);
-        if (el) el.textContent = pct+'%';
-        if (bar) bar.style.width = pct+'%';
+        const pct = total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
+        const el  = document.getElementById('norm-' + kode);
+        const bar = document.getElementById('bar-' + kode);
+        if (el)  el.textContent  = pct + '%';
+        if (bar) bar.style.width = pct + '%';
     });
 }
 
+// ── Validasi ─────────────────────────────────────────────────────
+// FIX: hanya butuh minimal 2 mobil + total bobot > 0 (tidak harus tepat 100)
 function validateForm() {
     const count = document.querySelectorAll('.mobil-checkbox:checked').length;
     let total = 0;
-    document.querySelectorAll('.slider-input').forEach(s => total += parseFloat(s.value)||0);
+    document.querySelectorAll('.slider-input').forEach(s => total += parseFloat(s.value) || 0);
+
     const issues = [];
     if (count < 2) issues.push('Pilih minimal 2 model BMW');
-    if (total !== 100) issues.push('Total bobot harus 100 (sekarang '+total+')');
-    const btn = document.getElementById('btn-hitung');
+    if (total === 0) issues.push('Minimal satu bobot harus lebih dari 0');
+
+    const btn     = document.getElementById('btn-hitung');
+    const tooltip = document.getElementById('tooltip-btn');
+    const msg     = document.getElementById('tooltip-msg');
+
     btn.disabled = issues.length > 0;
+
     btn.onmouseenter = () => {
         if (issues.length > 0) {
-            document.getElementById('tooltip-msg').innerHTML = issues.map(i=>'• '+i).join('<br>');
-            document.getElementById('tooltip-btn').classList.remove('hidden');
+            msg.innerHTML = issues.map(i => '• ' + i).join('<br>');
+            tooltip.classList.remove('hidden');
         }
     };
-    btn.onmouseleave = () => document.getElementById('tooltip-btn').classList.add('hidden');
+    btn.onmouseleave = () => tooltip.classList.add('hidden');
 }
 
 // ── AJAX Submit ──────────────────────────────────────────────────
 document.getElementById('form-tahap2').addEventListener('submit', async function(e) {
+    // Selalu cegah form submit normal — harus di baris pertama
     e.preventDefault();
+    e.stopPropagation();
+
+    // Kalau ada input[name="redirect"] → ini dari simpanHasil(), biarkan submit normal
+    if (this.querySelector('input[name="redirect"]')) {
+        this.submit();
+        return false;
+    }
+
     if (document.querySelectorAll('.mobil-checkbox:checked').length < 2) {
         document.getElementById('pesan-pilih').classList.remove('hidden');
-        return;
+        return false;
     }
+
     document.getElementById('ranking-placeholder').classList.add('hidden');
     document.getElementById('ranking-result').classList.add('hidden');
     document.getElementById('ranking-loading').classList.remove('hidden');
 
     try {
+        const csrfMeta  = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMeta
+            ? csrfMeta.content
+            : document.querySelector('input[name="_token"]').value;
+
         const response = await fetch('{{ route("spk.tahap2.hitung") }}', {
-            method: 'POST',
+            method:  'POST',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json',
+                'X-CSRF-TOKEN':     csrfToken,
+                'Accept':           'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
             body: new FormData(this),
         });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error('HTTP ' + response.status + ': ' + text.substring(0, 300));
+        }
+
         const data = await response.json();
         hasilTerakhir = data;
 
@@ -455,11 +510,14 @@ document.getElementById('form-tahap2').addEventListener('submit', async function
         // Update skor di matriks
         data.ranked.forEach(item => {
             const el = document.getElementById('skor-' + item.id);
-            if (el) { el.textContent = (item.skor*100).toFixed(2)+'%'; el.className = 'px-4 py-3 text-center font-bold text-indigo-600'; }
+            if (el) {
+                el.textContent = (item.skor * 100).toFixed(2) + '%';
+                el.className   = 'px-4 py-3 text-center font-bold text-indigo-600';
+            }
         });
 
-        // Tampilkan matriks rows yg dipilih
-        const selectedIds = [...document.querySelectorAll('.mobil-checkbox:checked')].map(c=>c.value);
+        // Tampilkan baris matriks yang dipilih
+        const selectedIds = [...document.querySelectorAll('.mobil-checkbox:checked')].map(c => c.value);
         document.querySelectorAll('.matriks-row').forEach(row => {
             row.classList.toggle('hidden', !selectedIds.includes(row.dataset.id));
         });
@@ -467,116 +525,182 @@ document.getElementById('form-tahap2').addEventListener('submit', async function
         document.getElementById('ranking-loading').classList.add('hidden');
         document.getElementById('ranking-result').classList.remove('hidden');
         document.getElementById('section-hasil').classList.remove('hidden');
-        document.getElementById('section-hasil').scrollIntoView({behavior:'smooth', block:'start'});
+        document.getElementById('section-hasil').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (err) {
         document.getElementById('ranking-loading').classList.add('hidden');
         document.getElementById('ranking-placeholder').classList.remove('hidden');
+        console.error(err);
         alert('Terjadi kesalahan: ' + err.message);
     }
 });
 
+// ── Render Ranking ───────────────────────────────────────────────
 function renderRanking(ranked) {
     const medals = ['🥇','🥈','🥉'];
     document.getElementById('ranking-list').innerHTML = ranked.map((item, i) => `
-        <div class="px-5 py-3 flex items-center gap-3 ${i===0?'bg-indigo-50/50':''}">
-            <div class="text-xl w-6 text-center flex-shrink-0">${medals[i]??'#'+(i+1)}</div>
+        <div class="px-5 py-3 flex items-center gap-3 ${i === 0 ? 'bg-indigo-50/50' : ''}">
+            <div class="text-xl w-6 text-center flex-shrink-0">${medals[i] ?? '#' + (i+1)}</div>
             <div class="flex-1 min-w-0">
                 <div class="text-xs font-bold text-gray-900 truncate">${item.nama}</div>
-                <div class="text-[10px] text-gray-400">${item.tahun??''}</div>
+                <div class="text-[10px] text-gray-400">${item.tahun ?? ''}</div>
                 <div class="mt-1 h-1 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full ${i===0?'bg-indigo-500':'bg-gray-300'} rounded-full" style="width:${(item.skor*100).toFixed(1)}%"></div>
+                    <div class="h-full ${i === 0 ? 'bg-indigo-500' : 'bg-gray-300'} rounded-full"
+                         style="width:${(item.skor * 100).toFixed(1)}%"></div>
                 </div>
             </div>
-            <div class="text-sm font-black ${i===0?'text-indigo-600':'text-gray-400'} flex-shrink-0">${(item.skor*100).toFixed(2)}%</div>
+            <div class="text-sm font-black ${i === 0 ? 'text-indigo-600' : 'text-gray-400'} flex-shrink-0">
+                ${(item.skor * 100).toFixed(2)}%
+            </div>
         </div>`).join('');
 }
 
+// ── Render Breakdown Langkah 1–4 ────────────────────────────────
 function renderBreakdown(ranked) {
     const medals = ['🥇','🥈','🥉'];
 
-    // Ambil bobot dari slider
+    // Ambil bobot dari slider saat ini
     const sliders = document.querySelectorAll('.slider-input');
     let totalBobot = 0;
     const bobotRaw = {};
-    sliders.forEach(s => { bobotRaw[s.dataset.kode] = parseFloat(s.value)||0; totalBobot += bobotRaw[s.dataset.kode]; });
+    sliders.forEach(s => {
+        bobotRaw[s.dataset.kode] = parseFloat(s.value) || 0;
+        totalBobot += bobotRaw[s.dataset.kode];
+    });
+    // Normalisasi bobot (inilah yang dikirim ke server juga)
     const bobot = {};
-    Object.entries(bobotRaw).forEach(([k,v]) => bobot[k] = v/totalBobot);
+    Object.entries(bobotRaw).forEach(([k, v]) => bobot[k] = totalBobot > 0 ? v / totalBobot : 0);
 
-    // Xmin Xmax dari ranked
+    // Xmin & Xmax per kriteria dari data ranked
     const minVal = {}, maxVal = {};
     KRIT.forEach(kr => {
-        const vals = ranked.map(r => parseFloat(r.nilai[kr.kode]??0));
+        const vals = ranked.map(r => parseFloat(r.nilai[kr.kode] ?? 0));
         minVal[kr.kode] = Math.min(...vals);
         maxVal[kr.kode] = Math.max(...vals);
     });
 
-    // 1. Bobot Normal
+    // ── Langkah 1: Normalisasi Bobot ────────────────────────────
     document.getElementById('tbody-bobot2').innerHTML = KRIT.map(kr => `
         <tr class="hover:bg-gray-50/50">
             <td class="px-5 py-2.5 font-semibold text-gray-900">${kr.nama}</td>
-            <td class="px-4 py-2.5 text-center"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${kr.tipe==='benefit'?'text-emerald-600 bg-emerald-50':'text-blue-600 bg-blue-50'}">${kr.tipe}</span></td>
+            <td class="px-4 py-2.5 text-center">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                    ${kr.tipe === 'benefit' ? 'text-emerald-600 bg-emerald-50' : 'text-blue-600 bg-blue-50'}">
+                    ${kr.tipe}
+                </span>
+            </td>
             <td class="px-4 py-2.5 text-center font-bold text-gray-700">${bobotRaw[kr.kode]}</td>
             <td class="px-4 py-2.5 text-center text-gray-400">${totalBobot}</td>
             <td class="px-4 py-2.5 text-center font-bold text-indigo-600">${bobot[kr.kode].toFixed(4)}</td>
-            <td class="px-4 py-2.5 text-center text-gray-300 font-mono text-[10px]">${bobotRaw[kr.kode]}/${totalBobot} = ${bobot[kr.kode].toFixed(4)}</td>
+            <td class="px-4 py-2.5 text-center text-gray-400 font-mono text-[10px]">
+                ${bobotRaw[kr.kode]}/${totalBobot} = ${bobot[kr.kode].toFixed(4)} (${(bobot[kr.kode] * 100).toFixed(1)}%)
+            </td>
         </tr>`).join('');
 
-    // 2. Nilai + MinMax
+    // ── Langkah 2: Matriks Nilai + Xmin/Xmax ────────────────────
     document.getElementById('thead-nilai2').innerHTML =
-        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Model</th>`
-        + KRIT.map(kr=>`<th class="px-4 py-3 text-center font-semibold ${kr.tipe==='benefit'?'text-emerald-500':'text-blue-500'}">${kr.nama}<div class="text-[9px] font-normal opacity-60">${kr.tipe}</div></th>`).join('');
-    document.getElementById('tbody-nilai2').innerHTML =
-        ranked.map(r=>`<tr class="hover:bg-gray-50/50">
-            <td class="px-5 py-2.5 font-semibold text-gray-900">${r.nama}</td>
-            ${KRIT.map(kr=>`<td class="px-4 py-2.5 text-center text-gray-600">${r.nilai[kr.kode]}</td>`).join('')}
-        </tr>`).join('')
-        + `<tr class="bg-red-50/30"><td class="px-5 py-2 font-bold text-red-500 text-[10px]">Xmin</td>${KRIT.map(kr=>`<td class="px-4 py-2 text-center font-bold text-red-500 text-[10px]">${minVal[kr.kode]}</td>`).join('')}</tr>`
-        + `<tr class="bg-emerald-50/30"><td class="px-5 py-2 font-bold text-emerald-600 text-[10px]">Xmax</td>${KRIT.map(kr=>`<td class="px-4 py-2 text-center font-bold text-emerald-500 text-[10px]">${maxVal[kr.kode]}</td>`).join('')}</tr>`;
+        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Model</th>` +
+        KRIT.map(kr => `
+            <th class="px-4 py-3 text-center font-semibold ${kr.tipe === 'benefit' ? 'text-emerald-500' : 'text-blue-500'}">
+                ${kr.nama}
+                <div class="text-[9px] font-normal opacity-60">${kr.tipe}</div>
+            </th>`).join('');
 
-    // 3. Utility
+    document.getElementById('tbody-nilai2').innerHTML =
+        ranked.map(r => `
+            <tr class="hover:bg-gray-50/50">
+                <td class="px-5 py-2.5 font-semibold text-gray-900">${r.nama}</td>
+                ${KRIT.map(kr => `<td class="px-4 py-2.5 text-center text-gray-600">${r.nilai[kr.kode]}</td>`).join('')}
+            </tr>`).join('') +
+        `<tr class="bg-red-50/30">
+            <td class="px-5 py-2 font-bold text-red-500 text-[10px]">Xmin</td>
+            ${KRIT.map(kr => `<td class="px-4 py-2 text-center font-bold text-red-500 text-[10px]">${minVal[kr.kode]}</td>`).join('')}
+        </tr>` +
+        `<tr class="bg-emerald-50/30">
+            <td class="px-5 py-2 font-bold text-emerald-600 text-[10px]">Xmax</td>
+            ${KRIT.map(kr => `<td class="px-4 py-2 text-center font-bold text-emerald-500 text-[10px]">${maxVal[kr.kode]}</td>`).join('')}
+        </tr>`;
+
+    // ── Langkah 3: Utility ──────────────────────────────────────
     document.getElementById('thead-utility2').innerHTML =
-        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Model</th>`
-        + KRIT.map(kr=>`<th class="px-4 py-3 text-center font-semibold ${kr.tipe==='benefit'?'text-emerald-500':'text-blue-500'}">${kr.nama}</th>`).join('')
-        + `<th class="px-4 py-3 text-center font-semibold text-indigo-500">Skor</th>`;
-    document.getElementById('tbody-utility2').innerHTML = ranked.map((r,i) => {
+        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Model</th>` +
+        KRIT.map(kr => `
+            <th class="px-4 py-3 text-center font-semibold ${kr.tipe === 'benefit' ? 'text-emerald-500' : 'text-blue-500'}">
+                ${kr.nama}
+            </th>`).join('') +
+        `<th class="px-4 py-3 text-center font-semibold text-indigo-500">Skor</th>`;
+
+    document.getElementById('tbody-utility2').innerHTML = ranked.map((r, i) => {
         const util = r.utility ?? {};
-        return `<tr class="${i===0?'bg-indigo-50/30':''} hover:bg-gray-50/50">
-            <td class="px-5 py-2.5 font-semibold ${i===0?'text-indigo-700':'text-gray-900'}">${medals[i]??'#'+(i+1)} ${r.nama}</td>
+        return `
+        <tr class="${i === 0 ? 'bg-indigo-50/30' : ''} hover:bg-gray-50/50">
+            <td class="px-5 py-2.5 font-semibold ${i === 0 ? 'text-indigo-700' : 'text-gray-900'}">
+                ${medals[i] ?? '#' + (i+1)} ${r.nama}
+            </td>
             ${KRIT.map(kr => {
-                const u = parseFloat(util[kr.kode]??0);
-                const cls = u>=0.75?'bg-emerald-50 text-emerald-600':u>=0.5?'bg-blue-50 text-blue-600':u>=0.25?'bg-amber-50 text-amber-600':'bg-red-50 text-red-500';
-                return `<td class="px-4 py-2.5 text-center"><span class="inline-flex items-center justify-center w-14 h-6 rounded text-[10px] font-bold ${cls}">${u.toFixed(4)}</span></td>`;
+                const u   = parseFloat(util[kr.kode] ?? 0);
+                const cls = u >= 0.75 ? 'bg-emerald-50 text-emerald-600'
+                          : u >= 0.5  ? 'bg-blue-50 text-blue-600'
+                          : u >= 0.25 ? 'bg-amber-50 text-amber-600'
+                          :             'bg-red-50 text-red-500';
+                return `<td class="px-4 py-2.5 text-center">
+                    <span class="inline-flex items-center justify-center w-14 h-6 rounded text-[10px] font-bold ${cls}">
+                        ${u.toFixed(4)}
+                    </span>
+                </td>`;
             }).join('')}
-            <td class="px-4 py-2.5 text-center font-black ${i===0?'text-indigo-600':'text-gray-400'}">${(r.skor*100).toFixed(2)}%</td>
+            <td class="px-4 py-2.5 text-center font-black ${i === 0 ? 'text-indigo-600' : 'text-gray-400'}">
+                ${(r.skor * 100).toFixed(2)}%
+            </td>
         </tr>`;
     }).join('');
 
-    // 4. Skor detail
+    // ── Langkah 4: Skor Detail ───────────────────────────────────
     document.getElementById('thead-skor2').innerHTML =
-        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Model</th>`
-        + KRIT.map(kr=>`<th class="px-4 py-3 text-center font-semibold text-gray-400 text-[10px]">Wi×Ui<br><span class="text-[9px]">${kr.nama.substring(0,12)}</span></th>`).join('')
-        + `<th class="px-4 py-3 text-center font-semibold text-indigo-500">Skor Total</th><th class="px-4 py-3 text-center font-semibold text-gray-400">Rank</th>`;
-    document.getElementById('tbody-skor2').innerHTML = ranked.map((r,i) => {
+        `<th class="px-5 py-3 text-left font-semibold text-gray-500">Model</th>` +
+        KRIT.map(kr => `
+            <th class="px-4 py-3 text-center font-semibold text-gray-400 text-[10px]">
+                Wi×Ui<br><span class="text-[9px]">${kr.nama.substring(0, 12)}</span>
+            </th>`).join('') +
+        `<th class="px-4 py-3 text-center font-semibold text-indigo-500">Skor Total</th>
+         <th class="px-4 py-3 text-center font-semibold text-gray-400">Rank</th>`;
+
+    document.getElementById('tbody-skor2').innerHTML = ranked.map((r, i) => {
         const util = r.utility ?? {};
-        return `<tr class="${i===0?'bg-indigo-50/30':''} hover:bg-gray-50/50">
-            <td class="px-5 py-2.5 font-semibold ${i===0?'text-indigo-700':'text-gray-900'}">${r.nama}</td>
-            ${KRIT.map(kr=>`<td class="px-4 py-2.5 text-center text-[10px] text-gray-500">${((bobot[kr.kode]??0)*(parseFloat(util[kr.kode]??0))).toFixed(4)}</td>`).join('')}
-            <td class="px-4 py-2.5 text-center font-black text-lg ${i===0?'text-indigo-600':'text-gray-400'}">${(r.skor*100).toFixed(2)}%</td>
-            <td class="px-4 py-2.5 text-center font-bold text-gray-500">${i+1}</td>
+        return `
+        <tr class="${i === 0 ? 'bg-indigo-50/30' : ''} hover:bg-gray-50/50">
+            <td class="px-5 py-2.5 font-semibold ${i === 0 ? 'text-indigo-700' : 'text-gray-900'}">${r.nama}</td>
+            ${KRIT.map(kr => {
+                const wiUi = (bobot[kr.kode] ?? 0) * parseFloat(util[kr.kode] ?? 0);
+                return `<td class="px-4 py-2.5 text-center text-[10px] text-gray-500">${wiUi.toFixed(4)}</td>`;
+            }).join('')}
+            <td class="px-4 py-2.5 text-center font-black text-lg ${i === 0 ? 'text-indigo-600' : 'text-gray-400'}">
+                ${(r.skor * 100).toFixed(2)}%
+            </td>
+            <td class="px-4 py-2.5 text-center font-bold text-gray-500">${i + 1}</td>
         </tr>`;
     }).join('');
 }
 
+// ── Simpan & Redirect ────────────────────────────────────────────
 function simpanHasil() {
-    const form = document.getElementById('form-tahap2');
+    const form     = document.getElementById('form-tahap2');
     const existing = form.querySelector('input[name="redirect"]');
     if (existing) existing.remove();
-    const input = document.createElement('input');
-    input.type='hidden'; input.name='redirect'; input.value='1';
+    const input    = document.createElement('input');
+    input.type     = 'hidden';
+    input.name     = 'redirect';
+    input.value    = '1';
     form.appendChild(input);
-    form.submit();
+    // Submit langsung ke browser (bypass AJAX listener karena ada input[name="redirect"])
+    HTMLFormElement.prototype.submit.call(form);
 }
+
+// ── Init ─────────────────────────────────────────────────────────
+// Pasang event listener pada semua checkbox (lebih reliable dari onchange inline)
+document.querySelectorAll('.mobil-checkbox').forEach(cb => {
+    cb.addEventListener('change', onMobilChange);
+});
 
 updateNormalized();
 validateForm();
